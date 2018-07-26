@@ -4,29 +4,22 @@ A basic regular expression library based on the idea that subscripting into a st
 a string should be a regex match. Where you might use an int or string subscript on a
 container to specify a subset of the data, a string subscript on a String type is notionally
 the matches with the subscript interpreted as a regex pattern which can be extracted,
-assigned to or iterated over. Extensively rewritten, again, The current version is now
-[TupleRegex.swift](SwiftRegex5.playground/Sources/TupleRegex.swift) explored
-in `SwiftRegex5.playground`.
+assigned to or iterated over. Extensively rewritten, again, now that subscripts can be generic
+the current version is now [TupleRegex.swift](SwiftRegex5.playground/Sources/TupleRegex.swift)
+explored in [SwiftRegex5.playground](SwiftRegex5.playground.zip).
 
 ```Swift
-//: Playground - noun: a place where people can play
-
 import XCTest
 
 var str = "Hello, playground"
 
-// the first sections develop the idea from regex object to subscripts to string regexs
+// the first sections develop the idea from regex object to subscripts on string regexs
 
-let word = Regex<(first: String, rest: String)>(pattern: "(\\w)(\\w*)")
+let word = RegexImpl<(first: String, rest: String)>(pattern: "(\\w)(\\w*)")
 
 if let detail = word.match(target: str) {
     XCTAssertEqual(detail.first, "H")
     XCTAssertEqual(detail.rest, "ello")
-}
-
-if let (first, rest) = word.caseInsensitive.match(target: str) {
-    XCTAssertEqual(first, "H")
-    XCTAssertEqual(rest, "ello")
 }
 
 let matches = word.matches(target: str)
@@ -40,36 +33,15 @@ for (first, rest) in word.iterator(target: str) {
     print(first, rest)
 }
 
-str = word.replacing(target: str, template: ("O", "la"))
+str = word.replacing(target: str, templates: [("O", "la")])
 XCTAssertEqual(str, "Ola, playground")
 
-// declare subscripts in extension on String to create a shorthand
+// declare subscripts in extension on String to create a shorthand.
+// tuple is global replace, array applies only the given matches
+// one-tuple is equivalent to a String which is always group 0
 
-if let detail = str[word] {
-    XCTAssertEqual(detail.first, "O")
-    XCTAssertEqual(detail.rest, "la")
-}
-
-if let (first, rest) = str[word.caseInsensitive] {
-    XCTAssertEqual(first, "O")
-    XCTAssertEqual(rest, "la")
-}
-
-let matches2 = str[word.allMatches]
-print(matches2)
-
-for (first, rest) in str[word.allMatches] {
-    print(first, rest)
-}
-
-for (first, rest) in str[word.iterate] {
-    print(first, rest)
-}
-
-str[word] = ("B", "onjour")
+str["(\\w)(\\w*)"] = [("B", "onjour")]
 XCTAssertEqual(str, "Bonjour, playground")
-
-// declare subscript on pattern as text (loose type inference)
 
 if let detail: (first: String, rest: String) = str["(\\w)(\\w*)"] {
     XCTAssertEqual(detail.first, "B")
@@ -92,7 +64,7 @@ for (first, rest): (String, String) in str["(\\w)(\\w*)".regexLazy] {
     print(first, rest)
 }
 
-str["(\\w)(\\w*)"] = ("S", "alut")
+str["(\\w)(\\w*)"] = [("S", "alut")]
 XCTAssertEqual(str, "Salut, playground")
 
 // fetch to tuple and assign from tuple operate on first match,
@@ -100,15 +72,16 @@ XCTAssertEqual(str, "Salut, playground")
 var numbers = "phone: 555 666-1234 fax: 555 666-4321"
 
 if let match: (String, String, String) = numbers["(\\d+) (\\d+)-(\\d+)"] {
-    print(match)
+    XCTAssert(match == ("555", "666","1234"), "single match")
 }
-numbers["(\\d+) (\\d+)-(\\d+)"] = ("555", "777", "1234")
+numbers["(\\d+) (\\d+)-(\\d+)"] = [("555", "777", "1234")]
 XCTAssertEqual(numbers, "phone: 555 777-1234 fax: 555 666-4321")
 
 // arrays of tuples operate on all matches
 
 let matches4: [(String, String, String)] = numbers["(\\d+) (\\d+)-(\\d+)"]
 print(matches4)
+
 numbers["(\\d+) (\\d+)-(\\d+)"] = [("555", "888", "1234"), ("555", "999", "4321")]
 XCTAssertEqual(numbers, "phone: 555 888-1234 fax: 555 999-4321")
 
@@ -118,7 +91,7 @@ if let area = numbers["(\\d+) (\\d+)-(\\d+)", 1] {
     XCTAssertEqual(area, "555")
 }
 
-numbers["(\\d+) (\\d+)-(\\d+)", 1] = "444"
+numbers["(\\d+) (\\d+)-(\\d+)", 1] = ["444"]
 XCTAssertEqual(numbers, "phone: 444 888-1234 fax: 555 999-4321")
 
 // a single element tuple always refers to the entire match (group 0)
@@ -132,21 +105,15 @@ XCTAssertEqual(numbers["(\\d+) (\\d+)-(\\d+)"], "444 000-1234")
 
 // replacements are regex templates and can be specified inline
 
-XCTAssertEqual(str["(\\w)(\\w*)", [("$1", "-$2")]], "S-alut, p-layground")
+XCTAssertEqual(str["(\\w)(\\w*)", "$1-$2"], "S-alut, p-layground")
 
 // assignment can be from a closure which is passed over all matches
-
-str[word] = {
-    (groups, stop) -> String in
-    return groups.first.uppercased()+groups.rest
-}
-XCTAssertEqual(str, "Salut, Playground")
 
 str["(\\w)(\\w*)"] = {
     (groups: (first: String, rest: String), stop) -> String in
     return groups.first+groups.rest.uppercased()
 }
-XCTAssertEqual(str, "SALUT, PLAYGROUND")
+XCTAssertEqual(str, "SALUT, pLAYGROUND")
 
 // parsing a properties file using regex as iterator
 
@@ -201,6 +168,7 @@ else {
 }
 
 XCTAssertEqual(input["quick brown (\\w+)", 1], "fox", "group subscript")
+XCTAssertEqual(input["the (\\w+)".caseInsensitive, 1], ["quick", "lazy"], "group matches")
 XCTAssertEqual(input["(the lazy) (dog)?", 2], "dog", "optional group pass")
 XCTAssertEqual(input["(the lazy) (cat)?", 2], nil, "nil optional group pass")
 
@@ -217,4 +185,20 @@ XCTAssertEqual(input, "The Quick Brown Fox Jumps Over The Very Lazy Dog.", "bloc
 input["Quick (\\w+)", 1] = "Red $1"
 
 XCTAssertEqual(input, "The Quick Red Brown Fox Jumps Over The Very Lazy Dog.", "group replace pass")
+
+var z = "👨‍👩‍👧‍👦👨‍👩‍👧‍👦 👨‍👩‍👧‍👦  👩‍👩‍👦👩‍👩‍👦👩‍👩‍👦 🇭🇺 🇭🇺🇭🇺"
+
+z["👨‍👩‍👧‍👦"] = "👩‍👩‍👦"
+XCTAssertEqual(z, "👩‍👩‍👦👩‍👩‍👦 👩‍👩‍👦  👩‍👩‍👦👩‍👩‍👦👩‍👩‍👦 🇭🇺 🇭🇺🇭🇺", "emoji pass")
+
+z["🇭🇺"] = {
+    (groups: [Substring?], stop) in
+    stop.pointee = true
+    return "🇫🇷"
+}
+XCTAssertEqual(z, "👩‍👩‍👦👩‍👩‍👦 👩‍👩‍👦  👩‍👩‍👦👩‍👩‍👦👩‍👩‍👦 🇫🇷 🇭🇺🇭🇺", "emoji pass")
+
+z["👩‍👩‍👦"] = ["$0", nil, "$0", "👪", "👩‍👧‍👧"]
+
+XCTAssertEqual(z, "👩‍👩‍👦👩‍👩‍👦 👩‍👩‍👦  👪👩‍👧‍👧👩‍👩‍👦 🇫🇷 🇭🇺🇭🇺", "emoji pass")
 ```

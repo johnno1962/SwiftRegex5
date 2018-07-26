@@ -6,7 +6,7 @@ var str = "Hello, playground"
 
 // the first sections develop the idea from regex object to subscripts to string regexs
 
-let word = Regex<(first: String, rest: String)>(pattern: "(\\w)(\\w*)")
+let word = RegexImpl<(first: String, rest: String)>(pattern: "(\\w)(\\w*)")
 
 if let detail = word.match(target: str) {
     XCTAssertEqual(detail.first, "H")
@@ -73,6 +73,9 @@ if let match: (String, String, String) = numbers["(\\d+) (\\d+)-(\\d+)"] {
 
 let allMatches: [(String, String, String)] = numbers["(\\d+) (\\d+)-(\\d+)"]
 XCTAssert(allMatches[1] == ("555", "666", "4321"))
+
+let secondMatch: (String, String, String) = numbers["(\\d+) (\\d+)-(\\d+)"][1]
+XCTAssert(secondMatch == ("555", "666", "4321"))
 
 numbers["(\\d+) (\\d+)-(\\d+)"] = [("555", "777", "1234")]
 XCTAssertEqual(numbers, "phone: 555 777-1234 fax: 555 666-4321")
@@ -217,7 +220,7 @@ input["(\\w)(\\w+)"] = {
 XCTAssertEqual(input, "The Quick Brown Fox Jumps Over The Very Lazy Dog.", "block pass")
 
 input["Quick (\\w+)", 1] = "Red $1"
-
+print(input)
 XCTAssertEqual(input, "The Quick Red Brown Fox Jumps Over The Very Lazy Dog.", "group replace pass")
 
 if let a: [String] = "Hello, playground"["(\\w)(\\w*)"] {
@@ -229,6 +232,7 @@ for a: String in "Hello, playground"["(\\w)(\\w*)"] {
     print(a)
 }
 
+/// assorted testing
 var capture = RegexMatch()
 switch input {
 case "Fox (\\w+)".regex(capture: capture):
@@ -281,3 +285,9 @@ if let _ = C()[""] ?? nil {
 let s2: [String] = C()[""]
 
 if case let z = 44 { } 
+
+"abc"["(\\w)(\\w)", substitute: ("$2", "$1")]
+"abc"["(\\w)(\\w)", substitute: { (groups: (String, String), stop) in
+    groups.1+groups.0 }]
+"abc"["(\\w)(\\w)", substitute: { (groups: (String, String), stop) in
+    groups.1.uppercased()+groups.0 }]
