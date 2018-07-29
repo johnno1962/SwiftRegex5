@@ -188,6 +188,8 @@ else {
     XCTAssert(true, "non-match pass")
 }
 
+let rgs: [Range<String.Index>?] = input["the (\\w+)".caseInsensitive, 1]
+XCTAssertEqual(rgs.map { input[$0!] }, ["quick", "lazy"], "range matches")
 XCTAssertEqual(input["quick brown (\\w+)", 1], "fox", "group subscript")
 XCTAssertEqual(input["the (\\w+)".caseInsensitive, 1], ["quick", "lazy"], "group matches")
 XCTAssertEqual(input["(the lazy) (dog)?", 2], "dog", "optional group pass")
@@ -242,6 +244,8 @@ default:
 }
 
 var s = "Hello, playground"
+s["(\\w)(\\w*)"] = [("M", "ellooo")]
+print(s)
 s["(\\w)(\\w*)"] = ("M", "ellooo")
 print(s)
 s["(\\w)(\\w*)"] = ["Na", "Gesellschaft"]
@@ -291,3 +295,18 @@ if case let z = 44 { }
     groups.1+groups.0 }]
 "abc"["(\\w)(\\w)", substitute: { (groups: (String, String), stop) in
     groups.1.uppercased()+groups.0 }]
+let c = "abcd".replacing(regex: "(\\w)(\\w)") {
+    (groups: (String, String), stop) in
+    groups.1.uppercased()+groups.0
+}
+"abc"["(.)(.)"].map { (groups: (String, String)) in
+    return groups.1+groups.0 }.joined()
+"abc"["(.)(.)"].map { (groups: [String]) in
+    return groups[2]+groups[1] }.joined()
+print("abcde"["(.)(.)", 1].map { $0+"-" }.joined())
+
+let s5: [String] = "abcd".allMatches(of: ".")
+var s6 = "1234"
+s6.replacing(regex: "(.)(.)", with: [("$0"), ("k", "j$2j")])
+s6["(.)(.)"] = [("$0"), ("k", "j$2j")]
+print(s6)

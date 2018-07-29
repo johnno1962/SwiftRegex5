@@ -4,8 +4,8 @@ A basic regular expression library based on the idea that subscripting into a st
 a string should be a regex match. Where you might use an int or string subscript on a
 container to specify a subset of the data, a string subscript on a String type is notionally
 the matches with the subscript interpreted as a regex pattern which can be extracted,
-assigned to or iterated over. Extensively rewritten, again, now that subscripts can be generic
-the current version is now [TupleRegex.swift](SwiftRegex5.playground/Sources/TupleRegex.swift)
+assigned to or iterated over. Extensively rewritten, again, the current version is now
+[TupleRegex.swift](SwiftRegex5.playground/Sources/TupleRegex.swift)
 explored in [SwiftRegex5.playground](SwiftRegex5.playground.zip).
 
 ```Swift
@@ -38,7 +38,6 @@ XCTAssertEqual(str, "Ola, playground")
 
 // declare subscripts in extension on String to create a shorthand.
 // tuple is global replace, array applies only the given matches
-// one-tuple is equivalent to a String which is always group 0
 
 str["(\\w)(\\w*)"] = [("B", "onjour")]
 XCTAssertEqual(str, "Bonjour, playground")

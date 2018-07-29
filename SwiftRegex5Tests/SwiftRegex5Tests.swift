@@ -52,7 +52,6 @@ class SwiftRegex5Tests: XCTestCase {
 
         // declare subscripts in extension on String to create a shorthand.
         // tuple is global replace, array applies only the given matches
-        // one-tuple is equivalent to a String which is always group 0
 
         str["(\\w)(\\w*)"] = [("B", "onjour")]
         XCTAssertEqual(str, "Bonjour, playground")
@@ -181,6 +180,8 @@ class SwiftRegex5Tests: XCTestCase {
             XCTAssert(true, "non-match pass")
         }
 
+        let rgs: [Range<String.Index>?] = input["the (\\w+)".caseInsensitive, 1]
+        XCTAssertEqual(rgs.map { input[$0!] }, ["quick", "lazy"], "range matches")
         XCTAssertEqual(input["quick brown (\\w+)", 1], "fox", "group subscript")
         XCTAssertEqual(input["the (\\w+)".caseInsensitive, 1], ["quick", "lazy"], "group matches")
         XCTAssertEqual(input["(the lazy) (dog)?", 2], "dog", "optional group pass")
@@ -215,6 +216,11 @@ class SwiftRegex5Tests: XCTestCase {
         z["👩‍👩‍👦"] = ["$0", nil, "$0", "👪", "👩‍👧‍👧"]
 
         XCTAssertEqual(z, "👩‍👩‍👦👩‍👩‍👦 👩‍👩‍👦  👪👩‍👧‍👧👩‍👩‍👦 🇫🇷 🇭🇺🇭🇺", "emoji pass")
+
+        XCTAssertEqual("abcd".firstMatch(of: ".", pos: 2), "c")
+        XCTAssertEqual("abcd".allMatches(of: ".", pos: 2), ["c", "d"])
+        XCTAssertEqual("abcd".replacing(regex: ".", pos: 2, with: "e"), "abee")
+        XCTAssertEqual("abcd".replacing(regex: ".", pos: 2, with: ["e", "f"]), "abef")
     }
     
     func testPerformanceExample() {
