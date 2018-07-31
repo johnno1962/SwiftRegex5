@@ -7,7 +7,7 @@
 //
 //  Repo: https://github.com/johnno1962/SwiftRegex5
 //
-//  $Id: //depot/SwiftRegex5/SwiftRegex5.playground/Sources/TupleRegex.swift#25 $
+//  $Id: //depot/SwiftRegex5/SwiftRegex5.playground/Sources/TupleRegex.swift#27 $
 //
 
 import Foundation
@@ -33,25 +33,25 @@ public struct RegexOptioned: RegexLiteral, Hashable {
 
 extension RegexLiteral {
     public var caseInsensitive: RegexLiteral {
-        return regexOptioned.add(options: [.caseInsensitive])
+        return regexOptioned.add(options: .caseInsensitive)
     }
     public var allowCommentsAndWhitespace: RegexLiteral {
-        return regexOptioned.add(options: [.allowCommentsAndWhitespace])
+        return regexOptioned.add(options: .allowCommentsAndWhitespace)
     }
     public var ignoreMetacharacters: RegexLiteral {
-        return regexOptioned.add(options: [.ignoreMetacharacters])
+        return regexOptioned.add(options: .ignoreMetacharacters)
     }
     public var dotMatchesLineSeparators: RegexLiteral {
-        return regexOptioned.add(options: [.dotMatchesLineSeparators])
+        return regexOptioned.add(options: .dotMatchesLineSeparators)
     }
     public var anchorsMatchLines: RegexLiteral {
-        return regexOptioned.add(options: [.anchorsMatchLines])
+        return regexOptioned.add(options: .anchorsMatchLines)
     }
     public var useUnixLineSeparators: RegexLiteral {
-        return regexOptioned.add(options: [.useUnixLineSeparators])
+        return regexOptioned.add(options: .useUnixLineSeparators)
     }
     public var useUnicodeWordBoundaries: RegexLiteral {
-        return regexOptioned.add(options: [.useUnicodeWordBoundaries])
+        return regexOptioned.add(options: .useUnicodeWordBoundaries)
     }
     public var regexLazy: RegexLazy {
         return RegexLazy(literal: self)
@@ -236,17 +236,15 @@ open class TupleRegex<T>: RegexLiteral, ExpressibleByStringLiteral {
 
     public let regexOptioned: RegexOptioned
 
-    lazy var regex = {
-        regexCache[self.regexOptioned] ?? {
-            do {
-                let regex = try NSRegularExpression(pattern: self.regexOptioned.pattern,
-                                                    options: self.regexOptioned.options)
-                regexCache[self.regexOptioned] = regex
-                return regex
-            } catch {
-                fatalError("Could not parse regex: \(self.regexOptioned.pattern) - \(error)")
-            }
-        }()
+    lazy var regex = regexCache[self.regexOptioned] ?? {
+        do {
+            let regex = try NSRegularExpression(pattern: self.regexOptioned.pattern,
+                                                options: self.regexOptioned.options)
+            regexCache[self.regexOptioned] = regex
+            return regex
+        } catch {
+            fatalError("Could not parse regex: \(self.regexOptioned.pattern) - \(error)")
+        }
     }()
 
     public init(pattern: RegexLiteral) {

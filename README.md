@@ -13,6 +13,91 @@ import XCTest
 
 var str = "Hello, playground"
 
+// TupleRegex.swift defines seven new member functions on String to make working
+// with regular expressions easier.
+
+if str.containsMatch(of: "play\\w+") {
+    XCTAssert(true, "basic match")
+}
+
+if let firstWord: String = str.firstMatch(of: "(\\w)(\\w*)") {
+    XCTAssertEqual(firstWord, "Hello", "extract match")
+}
+
+// functions are generic by return value and can single value or tuples or
+// arrays of any of: String, Substring?, Range<String.Index>? or NSRange
+
+if let (initial, remainnder): (String, String) = str.firstMatch(of: "(\\w)(\\w*)") {
+    XCTAssert((initial, remainnder) == ("H", "ello"), "extract match")
+}
+
+// While tuples start at group 1, arrays contain "group 0", the full match
+
+if let match: [Substring?] = str.firstMatch(of: "(\\w)(\\w*)") {
+    XCTAssertEqual(match, ["Hello", "H", "ello"], "array match")
+}
+
+// when not optional it is also possible to extract all matches from a string
+
+let allWords: [(String, String)] = str.allMatches(of: "(\\w)(\\w*)")
+XCTAssert(allWords[0] == ("H", "ello") && allWords[1] == ("p", "layground"))
+
+// there are functions available to replace the contents of the match
+
+let replaced1 = str.replacing(regex: "Hello", with: "Ola")
+XCTAssertEqual(replaced1, "Ola, playground", "simple replace")
+
+// simple tuple values are a gloal replace
+
+let replaced2 = str.replacing(regex: "\\w+", with: "Ola")
+XCTAssertEqual(replaced2, "Ola, Ola", "global replace")
+
+// to replace only the first or "N" matches use array assignment
+
+let replaced3 = str.replacing(regex: "(\\w)(\\w*)", with: [("S", "alute")])
+XCTAssertEqual(replaced3, "Salute, playground", "constrained replace")
+
+// where pocessing is required a closure replace can be used.
+
+let replaced4 = str.replacing(regex: "(\\w)(\\w*)") {
+    (groups: (initial: String, remainder: String), stop) in
+    return groups.initial+groups.remainder.uppercased()
+}
+XCTAssertEqual(replaced4, "HELLO, pLAYGROUND", "constrained replace")
+
+// At this point it's possible to define a generic subscript of a String by a
+// String with getters and setters to provide a shorthand for these functions.
+
+if str["play\\w+"] {
+    XCTAssert(true, "basic match")
+}
+
+if let firstWord: String = str["(\\w)(\\w*)"] {
+    XCTAssertEqual(firstWord, "Hello", "extract match")
+}
+
+if let (initial, remainnder): (String, String) = str["(\\w)(\\w*)"] {
+    XCTAssert((initial, remainnder) == ("H", "ello"), "extract match")
+}
+
+let allWords2: [(String, String)] = str["(\\w)(\\w*)"]
+XCTAssert(allWords2[0] == ("H", "ello") && allWords2[1] == ("p", "layground"))
+
+// perhaps this makes more sense when you realise subscripts can be assigned to
+
+str["Hello"] = "Ola"
+XCTAssertEqual(str, "Ola, playground", "simple replace")
+
+str["\\w+"] = "Ola"
+XCTAssertEqual(str, "Ola, Ola", "global replace")
+
+str["(\\w)(\\w*)"] = [("S", "alute")]
+XCTAssertEqual(str, "Salute, Ola", "constrained replace")
+
+// this yields a single unified syntax for a variety of regex operations.
+
+str = "Hello, playground"
+
 // the first sections develop the idea from regex object to subscripts on string regexs
 
 let word = RegexImpl<(first: String, rest: String)>(pattern: "(\\w)(\\w*)")
