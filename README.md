@@ -231,7 +231,7 @@ for r: (NSRange, NSRange) in props["(\\w+)\\s*=\\s*(.*)".regexLazy] {
 
 let match = RegexMatch()
 switch str {
-case "(\\w)(\\w*)".regex(capture: match):
+case match["(\\w)(\\w*)"]:
     let (first, rest): (String, String) = str[match]
     print("\(first)~\(rest)")
 default:

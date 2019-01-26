@@ -7,7 +7,7 @@
 //
 //  Repo: https://github.com/johnno1962/SwiftRegex5
 //
-//  $Id: //depot/SwiftRegex5/SwiftRegex5.playground/Sources/TupleRegex.swift#27 $
+//  $Id: //depot/SwiftRegex5/SwiftRegex5.playground/Sources/TupleRegex.swift#31 $
 //
 
 import Foundation
@@ -19,15 +19,19 @@ public protocol RegexLiteral {
 }
 
 public struct RegexOptioned: RegexLiteral, Hashable {
+    public static var defaultOptions: NSRegularExpression.Options = []
     let pattern: String
     let options: NSRegularExpression.Options
     public var regexOptioned: RegexOptioned { return self }
     public var hashValue: Int { return pattern.hashValue }
-    public static func == (lhs: RegexOptioned, rhs: RegexOptioned) -> Bool {
-        return lhs.pattern == rhs.pattern && lhs.options == rhs.options
-    }
     func add(options extra: NSRegularExpression.Options) -> RegexLiteral {
         return RegexOptioned(pattern: pattern, options: options.union(extra))
+    }
+}
+
+extension RegexOptioned: ExpressibleByStringLiteral {
+    public init(stringLiteral value: String) {
+        self.init(pattern: value, options: RegexOptioned.defaultOptions)
     }
 }
 
@@ -64,19 +68,21 @@ public struct RegexLazy {
 
 /// extensions to String
 extension String: RegexLiteral {
-    public static var regexDefaultOptions: NSRegularExpression.Options = []
-
     public var regexOptioned: RegexOptioned {
-        return RegexOptioned(pattern: self, options: String.regexDefaultOptions)
+        return RegexOptioned(pattern: self, options: RegexOptioned.defaultOptions)
     }
 
     fileprivate func nsrange(pos: Int? = nil) -> NSRange {
-        let pos = pos ?? 0
-        return NSMakeRange(pos, utf16.count - pos)
+        var range = NSRange(startIndex ..< endIndex, in: self)
+        if let pos = pos, pos != 0 {
+            range.location += pos
+            range.length -= pos
+        }
+        return range
     }
-    fileprivate subscript(range: NSRange) -> Substring? {
-        return Range(range, in: self).flatMap { self[$0] }
-    }
+//    fileprivate subscript(range: NSRange) -> Substring? {
+//        return Range(range, in: self).flatMap { self[$0] }
+//    }
 
     /// longhand API and bridge to implementation class
     public func containsMatch(of regex: RegexLiteral, pos: Int? = nil) -> Bool {
@@ -261,20 +267,21 @@ open class TupleRegex<T>: RegexLiteral, ExpressibleByStringLiteral {
     open func match(target: String, pos: Int? = nil, group: Int? = nil) -> T? {
         return matchResult(target: target, pos: pos).flatMap {
             group != nil && $0.range(at: group!).location == NSNotFound ? nil :
-                entuple(match: $0, from: target, group: group)
+                entuple(match: $0, from: NSString(string: target), group: group)
         }
     }
     open func matches(target: String, pos: Int? = nil, group: Int? = nil) -> [T] {
         var out = [T]()
+        let nstarget = NSString(string: target)
         regex.enumerateMatches(in: target, options: [], range: target.nsrange(pos: pos)) {
             (match: NSTextCheckingResult?, flags: NSRegularExpression.MatchingFlags, stop: UnsafeMutablePointer<ObjCBool>) in
-            out.append(self.entuple(match: match!, from: target, group: group))
+            out.append(self.entuple(match: match!, from: nstarget, group: group))
         }
         return out
     }
 
     lazy var tupleTypeDescription = "\(T.self)"
-    func entuple(match: NSTextCheckingResult, from target: String, group: Int? = nil) -> T {
+    func entuple(match: NSTextCheckingResult, from target: NSString, group: Int? = nil) -> T {
         if let match = match as? T {
             return match
         }
@@ -299,12 +306,8 @@ open class TupleRegex<T>: RegexLiteral, ExpressibleByStringLiteral {
             return nsranges
         }
 
-        var ranges: [Range<String.Index>?] = nsranges.map { Range($0, in: target) }
-        if let ranges = tuple(from: &ranges) {
-            return ranges
-        }
-
-        var substrs: [Substring?] = ranges.map { $0.flatMap { target[$0] } }
+        var substrs: [Substring?] = nsranges.map { $0.location == NSNotFound ? nil :
+                                                Substring(target.substring(with: $0)) }
         if let substrs = tuple(from: &substrs) {
             return substrs
         }
@@ -312,6 +315,11 @@ open class TupleRegex<T>: RegexLiteral, ExpressibleByStringLiteral {
         var groups: [String] = substrs.map { String($0 ?? "") }
         if let groups = tuple(from: &groups) {
             return groups
+        }
+
+        var ranges: [Range<String.Index>?] = nsranges.map { Range($0, in: target as String) }
+        if let ranges = tuple(from: &ranges) {
+            return ranges
         }
 
         fatalError("Cannot entuple type \(T.self) from \(groups[1...])")
@@ -335,9 +343,10 @@ open class TupleRegex<T>: RegexLiteral, ExpressibleByStringLiteral {
         if templates.count == 0 {
             return target
         }
-        var out = [Substring]()
+        var out = [String]()
         var pos = 0, matchno = 0
 
+        let nstarget = NSString(string: target)
         regex.enumerateMatches(in: target, options: [], range: target.nsrange(pos: posin)) {
             (match: NSTextCheckingResult?, flags: NSRegularExpression.MatchingFlags, stop: UnsafeMutablePointer<ObjCBool>) in
             guard let match = match else { return }
@@ -353,32 +362,33 @@ open class TupleRegex<T>: RegexLiteral, ExpressibleByStringLiteral {
                 let range = match.range(at: group)
                 if range.location != NSNotFound && range.location >= pos,
                     let replacement = replacements[forceGroup != nil ? 0 : max(0, group - 1)] {
-                    out.append(target[NSMakeRange(pos, range.location - pos)] ?? "Invalid range 1")
-                    out.append(Substring(self.regex.replacementString(for: match, in: target, offset: 0,
-                                                                      template: replacement)))
+                    out.append(nstarget.substring(with: NSMakeRange(pos, range.location - pos)))
+                    out.append(self.regex.replacementString(for: match, in: target, offset: 0,
+                                                            template: replacement))
                     pos = NSMaxRange(range)
                 }
             }
         }
 
-        out.append(target[target.nsrange(pos: pos)] ?? "Invalid range 2")
+        out.append(nstarget.substring(with: target.nsrange(pos: pos)))
         return out.joined()
     }
     open func replacing(target: String, pos posin: Int? = nil, group: Int? = nil,
                         exec closure: @escaping (T, UnsafeMutablePointer<ObjCBool>) -> String) -> String {
-        var out = [Substring]()
+        var out = [String]()
         var pos = 0
 
+        let nstarget = NSString(string: target)
         regex.enumerateMatches(in: target, options: [], range: target.nsrange(pos: posin)) {
             (match: NSTextCheckingResult?, flags: NSRegularExpression.MatchingFlags, stop: UnsafeMutablePointer<ObjCBool>) in
             guard let match = match else { return }
             let range = match.range(at: group ?? 0)
-            out.append(target[NSMakeRange(pos, range.location - pos)] ?? "Invalid range 3")
-            out.append(Substring(closure(self.entuple(match: match, from: target), stop)))
+            out.append(nstarget.substring(with: NSMakeRange(pos, range.location - pos)))
+            out.append(closure(self.entuple(match: match, from: nstarget), stop))
             pos = NSMaxRange(range)
         }
 
-        out.append(target[target.nsrange(pos: pos)] ?? "Invalid range 4")
+        out.append(nstarget.substring(with: target.nsrange(pos: pos)))
         return out.joined()
     }
 
@@ -386,19 +396,22 @@ open class TupleRegex<T>: RegexLiteral, ExpressibleByStringLiteral {
     private struct TupleIterator: IteratorProtocol {
         let regex: RegexImpl<T>
         let target: String
+        let nstarget: NSString
         let group: Int?
         var pos: Int?
 
         public mutating func next() -> T? {
             if let match = regex.matchResult(target: target, pos: pos) {
                 pos = NSMaxRange(match.range)
-                return regex.entuple(match: match, from: target, group: group)
+                return regex.entuple(match: match, from: nstarget, group: group)
             }
             return nil
         }
     }
     open func iterator(target: String, pos: Int? = nil, group: Int? = nil) -> AnyIterator<T> {
-        var iterator = TupleIterator(regex: self, target: target, group: group, pos: pos)
+        var iterator = TupleIterator(regex: self, target: target,
+                                     nstarget: NSString(string: target),
+                                     group: group, pos: pos)
         return AnyIterator {
             iterator.next()
         }
@@ -408,16 +421,19 @@ open class TupleRegex<T>: RegexLiteral, ExpressibleByStringLiteral {
 /// use in switch
 extension String {
     public subscript<T>(match: RegexMatch) -> T {
-        return RegexImpl<T>(pattern: "").entuple(match: match.match!, from: self)
+        return RegexImpl<T>(pattern: "").entuple(match: match.match!, from: NSString(string: self))
     }
     public subscript(match: RegexMatch, group: Int) -> String {
-        return RegexImpl<String>(pattern: "").entuple(match: match.match!, from: self, group: group)
+        return RegexImpl<String>(pattern: "").entuple(match: match.match!, from: NSString(string: self), group: group)
     }
 }
 
 public class RegexMatch {
     var match: NSTextCheckingResult?
     public init() {}
+    public subscript(pattern: RegexLiteral) -> RegexPattern {
+        return RegexPattern(literal: pattern, capture: self)
+    }
 }
 
 extension RegexLiteral {
