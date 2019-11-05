@@ -7,7 +7,7 @@
 //
 //  Repo: https://github.com/johnno1962/SwiftRegex5
 //
-//  $Id: //depot/SwiftRegex5/SwiftRegex5.playground/Sources/TupleRegex.swift#31 $
+//  $Id: //depot/SwiftRegex5/SwiftRegex5.playground/Sources/TupleRegex.swift#32 $
 //
 
 import Foundation
@@ -237,12 +237,17 @@ extension String {
 public typealias RegexImpl = TupleRegex
 
 private var regexCache = [RegexOptioned: NSRegularExpression]()
+private var cacheLock = NSLock()
 
 open class TupleRegex<T>: RegexLiteral, ExpressibleByStringLiteral {
 
     public let regexOptioned: RegexOptioned
 
-    lazy var regex = regexCache[self.regexOptioned] ?? {
+    lazy var regex: NSRegularExpression = {
+        cacheLock.lock(); defer { cacheLock.unlock() }
+        if let regex = regexCache[self.regexOptioned] {
+            return regex
+        }
         do {
             let regex = try NSRegularExpression(pattern: self.regexOptioned.pattern,
                                                 options: self.regexOptioned.options)
