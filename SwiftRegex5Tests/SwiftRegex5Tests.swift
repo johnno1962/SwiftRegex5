@@ -320,10 +320,10 @@ class SwiftRegex5Tests: XCTestCase {
             str = str + str
             str = str + str
             str = str + str
-            str = str + str
-            str = str + str
-            str = str + str
-            str = str + str
+//            str = str + str
+//            str = str + str
+//            str = str + str
+//            str = str + str
 
             var i = 0
             for _: String in str["\\w+"] {
