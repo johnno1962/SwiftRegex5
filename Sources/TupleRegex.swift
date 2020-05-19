@@ -7,7 +7,7 @@
 //
 //  Repo: https://github.com/johnno1962/SwiftRegex5
 //
-//  $Id: //depot/SwiftRegex5/Sources/TupleRegex.swift#1 $
+//  $Id: //depot/SwiftRegex5/Sources/TupleRegex.swift#2 $
 //
 
 import Foundation
@@ -296,8 +296,12 @@ open class TupleRegex<T>: RegexLiteral, ExpressibleByStringLiteral {
 
         // https://stackoverflow.com/questions/24746397/how-can-i-convert-an-array-to-a-tuple
         func tuple<E>(from array: inout [E]) -> T? {
-            if let tuple = array as? T ?? array[0] as? T {
+            if E.self == T.self,
+               let tuple = (array.count == 2 ? array[1] : array[0]) as? T {
                 return tuple
+            }
+            if [E].self == T.self {
+                return array as? T
             }
             if MemoryLayout<E>.stride * (array.count - 1) == MemoryLayout<T>.stride &&
                 tupleTypeDescription.hasSuffix(" \(E.self))") {
@@ -339,7 +343,7 @@ open class TupleRegex<T>: RegexLiteral, ExpressibleByStringLiteral {
         return children.count != 0 ? children.map { $0.value as? String } : [newValue as? String]
     }
     func groupRange(match: NSTextCheckingResult, replacements: [String?]) -> CountableRange<Int> {
-        return replacements.count == 1 ? 0 ..< 1 :
+        return replacements.count == 1 ? match.numberOfRanges == 2 ? 1 ..< 2 : 0 ..< 1 :
             (match.numberOfRanges == 1 ? 0 : 1) ..< min(match.numberOfRanges, replacements.count + 1)
     }
 

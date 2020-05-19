@@ -7,9 +7,9 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		BB20CC8A2474278000F0200F /* TupleRegex.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB20CC892474278000F0200F /* TupleRegex.swift */; };
 		BB57120C200A5457003F859F /* SwiftRegex5Tests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB57120B200A5457003F859F /* SwiftRegex5Tests.swift */; };
 		BB99B70D1FC839D400A15CF1 /* SwiftRegex5.h in Headers */ = {isa = PBXBuildFile; fileRef = BB99B6FF1FC839D400A15CF1 /* SwiftRegex5.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		BBC84838210A2E4000D50245 /* TupleRegex.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBC84837210A2E4000D50245 /* TupleRegex.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -23,13 +23,13 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		BB20CC892474278000F0200F /* TupleRegex.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = TupleRegex.swift; path = Sources/TupleRegex.swift; sourceTree = "<group>"; };
 		BB571209200A5457003F859F /* SwiftRegex5Tests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = SwiftRegex5Tests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		BB57120B200A5457003F859F /* SwiftRegex5Tests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SwiftRegex5Tests.swift; sourceTree = "<group>"; };
 		BB57120D200A5457003F859F /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		BB99B6FC1FC839D400A15CF1 /* SwiftRegex5.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = SwiftRegex5.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		BB99B6FF1FC839D400A15CF1 /* SwiftRegex5.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SwiftRegex5.h; sourceTree = "<group>"; };
 		BB99B7001FC839D400A15CF1 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		BBC84837210A2E4000D50245 /* TupleRegex.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = TupleRegex.swift; path = SwiftRegex5.playground/Sources/TupleRegex.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -62,7 +62,7 @@
 		BB99B6F21FC839D300A15CF1 = {
 			isa = PBXGroup;
 			children = (
-				BBC84837210A2E4000D50245 /* TupleRegex.swift */,
+				BB20CC892474278000F0200F /* TupleRegex.swift */,
 				BB99B6FE1FC839D400A15CF1 /* SwiftRegex5 */,
 				BB57120A200A5457003F859F /* SwiftRegex5Tests */,
 				BB99B6FD1FC839D400A15CF1 /* Products */,
@@ -161,7 +161,7 @@
 					};
 					BB99B6FB1FC839D400A15CF1 = {
 						CreatedOnToolsVersion = 9.1;
-						LastSwiftMigration = 0910;
+						LastSwiftMigration = 1140;
 						ProvisioningStyle = Automatic;
 					};
 				};
@@ -214,7 +214,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				BBC84838210A2E4000D50245 /* TupleRegex.swift in Sources */,
+				BB20CC8A2474278000F0200F /* TupleRegex.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
