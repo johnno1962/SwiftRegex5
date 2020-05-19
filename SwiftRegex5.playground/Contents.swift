@@ -321,11 +321,11 @@ for a: String in "Hello, playground"["(\\w)(\\w*)"] {
 
 // new special casing of single element tuples
 var str1 = "hello world"
-if let world: String = str1[#"\w+ (\w+)"#] {
+if let world: String = str1["\\w+ (\\w+)"] {
     XCTAssertEqual(world, "world")
 }
 
-str1[#"\w+ (\w+)"#] = "single"
+str1["\\w+ (\\w+)"] = "single"
 XCTAssertEqual(str1, "hello single")
 
 /// assorted testing
