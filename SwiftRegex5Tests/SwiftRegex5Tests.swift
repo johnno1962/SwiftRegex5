@@ -250,6 +250,22 @@ class SwiftRegex5Tests: XCTestCase {
         str1["\\w+ (\\w+)"] = "single"
         XCTAssertEqual(str1, "hello single")
 
+        let datePattern = #"(\d{4})-(\d{2})-(\d{2})"#
+        let date = "2018-01-01"
+        if let (year, month, day): (String, String, String) = date[datePattern] {
+            print( year, month, day )
+        }
+
+        var date2 = "0000-00-00"
+        date2[datePattern] = ("2018", "01", "01")
+        XCTAssertEqual(date, date2)
+
+        let dates = "2018-01-01 2019-02-02 2020-03-03"
+        for (year, month, day): (String, String, String) in  dates[datePattern] {
+            print( year, month, day )
+        }
+
+
         // exploring use in switch/case
 
         let match = RegexMatch()
