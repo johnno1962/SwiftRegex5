@@ -7,7 +7,7 @@
 //
 //  Repo: https://github.com/johnno1962/SwiftRegex5
 //
-//  $Id: //depot/SwiftRegex5/SwiftRegex5.playground/Sources/TupleRegex.swift#38 $
+//  $Id: //depot/SwiftRegex5/SwiftRegex5.playground/Sources/TupleRegex.swift#39 $
 //
 
 import Foundation
@@ -170,12 +170,6 @@ extension StringProtocol {
         return replacing(regex: pattern, with: template)
     }
     public subscript<T>(pattern: RegexLiteral, templates: [T]) -> String {
-        return replacing(regex: pattern, with: templates)
-    }
-    public subscript(pattern: RegexLiteral, replaceWith template: String) -> String {
-        return replacing(regex: pattern, with: template)
-    }
-    public subscript<T>(pattern: RegexLiteral, replaceWith templates: [T]) -> String {
         return replacing(regex: pattern, with: templates)
     }
     public subscript<T>(pattern: RegexLiteral,
