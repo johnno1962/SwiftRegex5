@@ -14,5 +14,7 @@ let package = Package(
     dependencies: [],
     targets: [
         .target(name: "SwiftRegex", dependencies: [], path: "SwiftRegex5.playground/Sources/"),
+        .testTarget(name: "SwiftRegexTests", dependencies: [
+            "SwiftRegex"], path: "SwiftRegex5Tests/"),
     ]
 )

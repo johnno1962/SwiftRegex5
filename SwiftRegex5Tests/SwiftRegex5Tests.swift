@@ -7,7 +7,11 @@
 //
 
 import XCTest
+#if SWIFT_PACKAGE
+import SwiftRegex
+#else
 import SwiftRegex5
+#endif
 
 class SwiftRegex5Tests: XCTestCase {
     
@@ -162,9 +166,12 @@ class SwiftRegex5Tests: XCTestCase {
             print(first, rest)
         }
 
-        str["(\\w)(\\w*)"] = [("S", "alut")]
-        XCTAssertEqual(str, "Salut, playground")
-
+        var count = 0
+        withUnsafeMutablePointer(to: &count) {
+            str["(\\w)(\\w*)", count: $0] = [("S", "alut")]
+            XCTAssertEqual(str, "Salut, playground")
+            XCTAssertEqual($0.pointee, 1, "Replacement count")
+        }
         // fetch to tuple and assign from tuple operate on first match,
 
         var numbers = "phone: 555 666-1234 fax: 555 666-4321"
@@ -203,7 +210,7 @@ class SwiftRegex5Tests: XCTestCase {
 
         // replacements are regex templates and can be specified inline
 
-        XCTAssertEqual(str["(\\w)(\\w*)", "$1-$2"], "S-alut, p-layground")
+        XCTAssertEqual(str["(\\w)(\\w*)", 0, "$1-$2"], "S-alut, p-layground")
 
         // assignment can be from a closure which is passed over all matches
 
@@ -297,10 +304,10 @@ class SwiftRegex5Tests: XCTestCase {
         XCTAssertEqual(input["(the lazy) (dog)?", 2], "dog", "optional group pass")
         XCTAssertEqual(input["(the lazy) (cat)?", 2], nil, "nil optional group pass")
 
-        input["(the) (\\w+)"] = "$1 very $2"
+        input["(the) (\\w+)", 0] = "$1 very $2"
         XCTAssertEqual(input, "The quick brown fox jumps over the very lazy dog.", "replace pass")
 
-        input["(\\w)(\\w+)"] = {
+        input["(\\w)(\\w+)", 0] = {
             (groups: [Substring?], stop) in
             return groups[1]!.uppercased()+groups[2]!
         }
