@@ -507,7 +507,7 @@ extension RegexLiteral {
 }
 
 public struct RegexPattern {
-    let literal: RegexLiteral
+    let literal: any RegexLiteral
     let capture: RegexMatch?
     public static func ~= (pattern: RegexPattern, value: String) -> Bool {
         if let match = RegexImpl<String>(pattern: pattern.literal).matchResult(target: value) {
