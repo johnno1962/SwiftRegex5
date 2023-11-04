@@ -150,13 +150,15 @@ extension StringProtocol {
             count: count, with: newValue!))! }
     }
 
-    /// mutliple match and selective replace (operating on individual group)
-    public subscript(pattern: some RegexLiteral, group: Int? = nil,
+    /// operating on individual group
+    public subscript(pattern: some RegexLiteral, group: Int,
         count count: UnsafeMutablePointer<Int>? = nil) -> String? {
         get { return firstMatch(of: pattern, group: group) }
         set(newValue) { self = Self(replacing(regex: pattern,
             group: group, count: count, with: newValue!))! }
     }
+
+    /// mutliple match and selective replace
     public subscript<T>(pattern: some RegexLiteral, group: Int? = nil,
         count count: UnsafeMutablePointer<Int>? = nil) -> [T] {
         get { return allMatches(of: pattern, group: group) }
@@ -173,19 +175,28 @@ extension StringProtocol {
             group: group, count: count, exec: closure))! }
     }
 
-    /// inplace replace
-    public subscript(pattern: some RegexLiteral, group: Int? = nil,
+    /// inplace replace (operates on whole String)
+    public subscript(pattern: some RegexLiteral,
         count count: UnsafeMutablePointer<Int>? = nil, template: String) -> String {
-        return replacing(regex: pattern, group: group, count: count, with: template)
+        return replacing(regex: pattern, count: count, with: template)
     }
+    /// operating on specific group
+    public subscript(pattern: some RegexLiteral, group: Int,
+        count count: UnsafeMutablePointer<Int>? = nil, template: String) -> String {
+        return replacing(regex: pattern, group: group,
+                         count: count, with: template)
+    }
+
     public subscript<T>(pattern: some RegexLiteral, group: Int? = nil,
         count count: UnsafeMutablePointer<Int>? = nil, templates: [T]) -> String {
-        return replacing(regex: pattern, group: group, count: count, with: templates)
+        return replacing(regex: pattern, group: group,
+                         count: count, with: templates)
     }
     public subscript<T>(pattern: some RegexLiteral, group: Int? = nil,
         count count: UnsafeMutablePointer<Int>? = nil, closure: @escaping (
             T, UnsafeMutablePointer<ObjCBool>) -> String) -> String {
-        return replacing(regex: pattern, group: group, count: count, exec: closure)
+        return replacing(regex: pattern, group: group,
+                         count: count, exec: closure)
     }
 }
 
@@ -298,31 +309,34 @@ open class TupleRegex<T>: RegexLiteral, ExpressibleByStringLiteral {
     }
     open func matches<SP: StringProtocol>(target: SP, pos: Int? = nil, group: Int? = nil) -> [T] {
         var out = [T]()
-        let nstarget = NSString(string: String(target))
+        let nsTarget = NSString(string: String(target))
         regex.enumerateMatches(in: String(target), options: [], range: target.nsRange(pos: pos)) {
             (match: NSTextCheckingResult?, flags: NSRegularExpression.MatchingFlags, stop: UnsafeMutablePointer<ObjCBool>) in
-            out.append(self.entuple(match: match!, from: nstarget, group: group))
+            out.append(self.entuple(match: match!, from: nsTarget, group: group))
         }
         return out
     }
 
-    lazy var tupleTypeDescription = "\(T.self)"
     func entuple(match: NSTextCheckingResult, from target: NSString, group: Int? = nil) -> T {
         if let match = match as? T {
             return match
         }
 
-        // https://stackoverflow.com/questions/24746397/how-can-i-convert-an-array-to-a-tuple
         func tuple<E>(from array: inout [E]) -> T? {
+            let expected = MemoryLayout<T>.stride / MemoryLayout<E>.stride
+            let groups = captures(group: group, match: match,
+                                  replacements: expected)
             if E.self == T.self,
-               let tuple = (array.count == 2 ? array[1] : array[0]) as? T {
+               let tuple = array[group != nil ?
+                    0 : groups.startIndex] as? T {
                 return tuple
             }
             if [E].self == T.self {
                 return array as? T
             }
+            // https://stackoverflow.com/questions/24746397/how-can-i-convert-an-array-to-a-tuple
             if MemoryLayout<E>.stride * (array.count - 1) == MemoryLayout<T>.stride &&
-                tupleTypeDescription.hasSuffix(" \(E.self))") {
+                "\(T.self)".hasSuffix(" \(E.self))") {
                 return array.withUnsafeBufferPointer {
                     ($0.baseAddress! + 1).withMemoryRebound(to: T.self, capacity: 1) { $0[0] }
                 }
@@ -360,19 +374,27 @@ open class TupleRegex<T>: RegexLiteral, ExpressibleByStringLiteral {
         let children = Mirror(reflecting: newValue).children
         return children.count != 0 ? children.map { $0.value as? String } : [newValue as? String]
     }
+    #if false
+    // original rules for group assignment
     func groupRange(match: NSTextCheckingResult, replacements: [String?]) -> CountableRange<Int> {
-        return match.numberOfRanges == 1 ? 0 ..< 1 : // No groups? Use group 0
-            1 ..< min(match.numberOfRanges, replacements.count + 1)
-//        // original incomprehensible rules for group assignment
-//        return replacements.count == 1 ? match.numberOfRanges == 2 ? 1 ..< 2 : 0 ..< 1 :
-//            (match.numberOfRanges == 1 ? 0 : 1) ..< min(match.numberOfRanges, replacements.count + 1)
+        return replacements.count == 1 ? match.numberOfRanges == 2 ? 1 ..< 2 : 0 ..< 1 :
+            (match.numberOfRanges == 1 ? 0 : 1) ..< min(match.numberOfRanges, replacements.count + 1)
+    }
+    #endif
+    func captures(group: Int?, match: NSTextCheckingResult, replacements: Int) -> CountableRange<Int> {
+        if let group = group { return group ..< group+1 }
+        let rangeCount = match.numberOfRanges - 1
+        return replacements == 1 && rangeCount > 1 ||
+            rangeCount == 0 ? 0 ..< 1 : // No groups or one replacement? Use 0
+            1 ..< min(replacements, rangeCount) + 1
     }
 
     open func replacing<SP: StringProtocol>(
         target: SP, pos: Int? = nil, group: Int? = nil,
         count: UnsafeMutablePointer<Int>? = nil,
         template: T) -> String {
-        return replacing(target: target, pos: pos, group: group, templates: [template], global: true)
+        return replacing(target: target, pos: pos, group: group,
+                         templates: [template], global: true)
     }
     open func replacing<SP: StringProtocol>(target: SP, pos posin: Int? = nil,
         group forceGroup: Int? = nil, count: UnsafeMutablePointer<Int>? = nil,
@@ -383,7 +405,7 @@ open class TupleRegex<T>: RegexLiteral, ExpressibleByStringLiteral {
         var out = [String]()
         var pos = 0, matchno = 0
 
-        let nstarget = NSString(string: String(target))
+        let nsTarget = NSString(string: String(target))
         regex.enumerateMatches(in: String(target), options: [], range: target.nsRange(pos: posin)) {
             (match: NSTextCheckingResult?, flags: NSRegularExpression.MatchingFlags, stop: UnsafeMutablePointer<ObjCBool>) in
             guard let match = match else { return }
@@ -394,21 +416,23 @@ open class TupleRegex<T>: RegexLiteral, ExpressibleByStringLiteral {
                 stop.pointee = true
             }
 
-            for group in forceGroup != nil ? forceGroup! ..< forceGroup! + 1 :
-                    self.groupRange(match: match, replacements: replacements) {
+            for group in self.captures(group: forceGroup, match: match,
+                                       replacements: replacements.count) {
                 let range = match.range(at: group)
                 if range.location != NSNotFound && range.location >= pos,
-                    let replacement = replacements[forceGroup != nil ? 0 : max(0, group - 1)] {
-                    out.append(nstarget.substring(with: NSMakeRange(pos, range.location - pos)))
-                    out.append(self.regex.replacementString(for: match, in: String(target), offset: 0,
-                                                            template: replacement))
+                    let replacement = replacements[forceGroup != nil ?
+                                                   0 : max(0, group - 1)] {
+                    out.append(nsTarget
+                        .substring(with: NSMakeRange(pos, range.location - pos)))
+                    out.append(self.regex.replacementString(for: match, in:
+                        String(target), offset: 0, template: replacement))
                     pos = NSMaxRange(range)
                 }
             }
             count?.pointee += 1
         }
 
-        out.append(nstarget.substring(with: target.nsRange(pos: pos)))
+        out.append(nsTarget.substring(with: target.nsRange(pos: pos)))
         return out.joined()
     }
     open func replacing<SP: StringProtocol>(target: SP, pos posin: Int? = nil,
@@ -417,18 +441,18 @@ open class TupleRegex<T>: RegexLiteral, ExpressibleByStringLiteral {
         var out = [String]()
         var pos = 0
 
-        let nstarget = NSString(string: String(target))
+        let nsTarget = NSString(string: String(target))
         regex.enumerateMatches(in: String(target), options: [], range: target.nsRange(pos: posin)) {
             (match: NSTextCheckingResult?, flags: NSRegularExpression.MatchingFlags, stop: UnsafeMutablePointer<ObjCBool>) in
             guard let match = match else { return }
             let range = match.range(at: group ?? 0)
-            out.append(nstarget.substring(with: NSMakeRange(pos, range.location - pos)))
-            out.append(closure(self.entuple(match: match, from: nstarget), stop))
+            out.append(nsTarget.substring(with: NSMakeRange(pos, range.location - pos)))
+            out.append(closure(self.entuple(match: match, from: nsTarget), stop))
             pos = NSMaxRange(range)
             count?.pointee += 1
         }
 
-        out.append(nstarget.substring(with: target.nsRange(pos: pos)))
+        out.append(nsTarget.substring(with: target.nsRange(pos: pos)))
         return out.joined()
     }
 
@@ -436,21 +460,21 @@ open class TupleRegex<T>: RegexLiteral, ExpressibleByStringLiteral {
     private struct TupleIterator: IteratorProtocol {
         let regex: RegexImpl<T>
         let target: String
-        let nstarget: NSString
+        let nsTarget: NSString
         let group: Int?
         var pos: Int?
 
         public mutating func next() -> T? {
             if let match = regex.matchResult(target: target, pos: pos) {
                 pos = NSMaxRange(match.range)
-                return regex.entuple(match: match, from: nstarget, group: group)
+                return regex.entuple(match: match, from: nsTarget, group: group)
             }
             return nil
         }
     }
     open func iterator<SP: StringProtocol>(target: SP, pos: Int? = nil, group: Int? = nil) -> AnyIterator<T> {
         var iterator = TupleIterator(regex: self, target: String(target),
-                                     nstarget: NSString(string: String(target)),
+                                     nsTarget: NSString(string: String(target)),
                                      group: group, pos: pos)
         return AnyIterator {
             iterator.next()
@@ -477,7 +501,7 @@ public class RegexMatch {
 }
 
 extension RegexLiteral {
-    public func regex(capture: (some RegexMatch)?) -> RegexPattern {
+    public func regex(capture: RegexMatch?) -> RegexPattern {
         return RegexPattern(literal: self, capture: capture)
     }
 }
