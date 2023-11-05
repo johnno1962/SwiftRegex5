@@ -1,13 +1,84 @@
 #  SwiftRegex5 - basic regex operations in Swift
 
 A basic regular expression library based on the idea that subscripting into a string with
-a string should be a regex match. Where you might use an int or string subscript on a
+a raw string should be a regex match. Where you might use an int or string subscript on a
 container to specify a subset of the data, a string subscript on a String type is notionally
 the matches with the subscript interpreted as a regex pattern which can be extracted,
 assigned to or iterated over. Extensively rewritten, again, the current version is now
 [TupleRegex.swift](SwiftRegex5.playground/Sources/TupleRegex.swift)
 explored in [SwiftRegex5.playground](SwiftRegex5.playground.zip).
 
+The Version 6 release refines the policy for which capture groups are 
+assigned/replaced. The basic idea is still a capture group is assigned
+to each element of a tuple and on replacement each element of a tuple
+is assigned to a capture group in the string. The problem is, there is 
+no such thing as a single element tuple so it can not be distinguished 
+from a plain String. A plain string will receive the first group in a 
+pattern but you might expect a plain string to receive the contents of 
+the entire pattern match rather than the first group. 
+
+The rule for these "single element tuples" (i.e. Strings) is: if the 
+number of capture groups in the pattern is exactly one then it receives 
+the first capture group otherwise it receives/replaces the entire match 
+(group 0). This seems to be the best compromise between consistency and 
+what people might expect of the library. For more details, consult the 
+tests.
+
+```
+    /// Basic tuple operations
+    var str = "one two three"
+
+    if let (one, two, three): (String, String, String) =
+        str[#"(\w+) (\w+) (\w+)"#] {
+        XCTAssertEqual(one, "one")
+        XCTAssertEqual(two, "two")
+        XCTAssertEqual(three, "three")
+    } else {
+        XCTFail()
+    }
+
+    str[#"(\w+) (\w+) (\w+)"#] = ("four", "five", "six")
+    XCTAssertEqual(str, "four five six")
+
+    str[#"(\w+)"#] = ["seven", "eight", "nine"]
+    XCTAssertEqual(str, "seven eight nine")
+
+    str[#"eight"#] = "zero"
+    XCTAssertEqual(str, "seven zero nine")
+
+    str[#"\w+ (\w+) \w+"#] = "alpha"
+    XCTAssertEqual(str, "seven alpha nine")
+
+    str[#"\w+ (\w+) (?:\w+)"#] = "beta"
+    XCTAssertEqual(str, "seven beta nine")
+
+    str[#"\w+ (\w+) (\w+)"#] = ("$2", "$1")
+    XCTAssertEqual(str, "seven nine beta")
+
+    str[#"\w+ (\w+) (\w+)"#] = ("$2 $1")
+    XCTAssertEqual(str, "beta nine")
+
+    if let (second, third): (String, String) =
+        str[#"(\w+) (\w+)"#].first {
+        XCTAssertEqual(second, "beta")
+        XCTAssertEqual(third, "nine")
+    } else {
+        XCTFail()
+    }
+
+    str[#"(\w)(\w+)"#] = { (groups: [String], stop) in
+        return groups[1].uppercased()+groups[2]
+    }
+    XCTAssertEqual(str, "Beta Nine")
+
+    str[#"(\w)(\w+)"#] = { (groups: [String], stop) in
+        stop.pointee = true
+        return groups[1].lowercased()+groups[2]
+    }
+    XCTAssertEqual(str, "beta Nine")
+```
+
+Original tests/playground (still pass)
 ```Swift
 import XCTest
 

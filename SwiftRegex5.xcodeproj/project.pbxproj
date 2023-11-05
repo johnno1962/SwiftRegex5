@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		BB20CC8A2474278000F0200F /* TupleRegex.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB20CC892474278000F0200F /* TupleRegex.swift */; };
+		BB351DEA2AF70B99006BBD31 /* README.md in Resources */ = {isa = PBXBuildFile; fileRef = BB351DE92AF70B99006BBD31 /* README.md */; };
 		BB57120C200A5457003F859F /* SwiftRegex5Tests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB57120B200A5457003F859F /* SwiftRegex5Tests.swift */; };
 		BB99B70D1FC839D400A15CF1 /* SwiftRegex5.h in Headers */ = {isa = PBXBuildFile; fileRef = BB99B6FF1FC839D400A15CF1 /* SwiftRegex5.h */; settings = {ATTRIBUTES = (Public, ); }; };
 /* End PBXBuildFile section */
@@ -24,6 +25,7 @@
 
 /* Begin PBXFileReference section */
 		BB20CC892474278000F0200F /* TupleRegex.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = TupleRegex.swift; path = Sources/TupleRegex.swift; sourceTree = "<group>"; };
+		BB351DE92AF70B99006BBD31 /* README.md */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		BB571209200A5457003F859F /* SwiftRegex5Tests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = SwiftRegex5Tests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		BB57120B200A5457003F859F /* SwiftRegex5Tests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SwiftRegex5Tests.swift; sourceTree = "<group>"; };
 		BB57120D200A5457003F859F /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -63,6 +65,7 @@
 		BB99B6F21FC839D300A15CF1 = {
 			isa = PBXGroup;
 			children = (
+				BB351DE92AF70B99006BBD31 /* README.md */,
 				BBCA8D5D2AF4227300865C23 /* Package.swift */,
 				BB20CC892474278000F0200F /* TupleRegex.swift */,
 				BB99B6FE1FC839D400A15CF1 /* SwiftRegex5 */,
@@ -198,6 +201,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				BB351DEA2AF70B99006BBD31 /* README.md in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
