@@ -7,7 +7,11 @@
 //
 
 import XCTest
+#if SWIFT_PACKAGE
+import SwiftRegex
+#else
 import SwiftRegex5
+#endif
 
 class SwiftRegex5Tests: XCTestCase {
     
@@ -22,6 +26,146 @@ class SwiftRegex5Tests: XCTestCase {
     }
     
     func testExample() {
+        // This is an example of a functional test case.
+        // Use XCTAssert and related functions to verify your tests produce the correct results.
+
+        /// Basic tuple operations
+        var str = "one two three"
+
+        if let (one, two, three): (String, String, String) =
+            str[#"(\w+) (\w+) (\w+)"#] {
+            XCTAssertEqual(one, "one")
+            XCTAssertEqual(two, "two")
+            XCTAssertEqual(three, "three")
+        } else {
+            XCTFail()
+        }
+
+        str[#"(\w+) (\w+) (\w+)"#] = ("four", "five", "six")
+        XCTAssertEqual(str, "four five six")
+
+        str[#"(\w+)"#] = ["seven", "eight", "nine"]
+        XCTAssertEqual(str, "seven eight nine")
+
+        str[#"eight"#] = "zero"
+        XCTAssertEqual(str, "seven zero nine")
+
+        str[#"\w+ (\w+) \w+"#] = "alpha"
+        XCTAssertEqual(str, "seven alpha nine")
+
+        str[#"\w+ (\w+) (?:\w+)"#] = "beta"
+        XCTAssertEqual(str, "seven beta nine")
+
+        str[#"\w+ (\w+) (\w+)"#] = ("$2", "$1")
+        XCTAssertEqual(str, "seven nine beta")
+
+        str[#"\w+ (\w+) (\w+)"#] = ("$2 $1")
+        XCTAssertEqual(str, "beta nine")
+
+        if let (second, third): (String, String) =
+            str[#"(\w+) (\w+)"#].first {
+            XCTAssertEqual(second, "beta")
+            XCTAssertEqual(third, "nine")
+        } else {
+            XCTFail()
+        }
+
+        str[#"(\w)(\w+)"#] = { (groups: [String], stop) in
+            return groups[1].uppercased()+groups[2]
+        }
+        XCTAssertEqual(str, "Beta Nine")
+
+        str[#"(\w)(\w+)"#] = { (groups: [String], stop) in
+            stop.pointee = true
+            return groups[1].lowercased()+groups[2]
+        }
+        XCTAssertEqual(str, "beta Nine")
+
+
+        let datePattern = #"(\d{4})-(\d{2})-(\d{2})"#
+        let date = "2018-01-01"
+        if let (year, month, day): (String, String, String) = date[datePattern] {
+            print( year, month, day )
+        }
+
+        var date2 = #"0000-00-00"#
+        date2[datePattern] = ("2018", "01", "01")
+        XCTAssertEqual(date, date2[#"[()]"#, ""])
+
+        var dates = "2018-01-01 2019-02-02 2020-03-03"
+        for (year, month, day): (String, String, String) in  dates[datePattern] {
+            print( year, month, day )
+        }
+
+        XCTAssertEqual(dates[datePattern], [
+            ["2018-01-01", "2018", "01", "01"],
+            ["2019-02-02", "2019", "02", "02"],
+            ["2020-03-03", "2020", "03", "03"]])
+
+        dates[#"(?<=\d\d)-(02)"#] = "04"
+        XCTAssertEqual(dates, "2018-01-01 2019-04-04 2020-03-03")
+
+        dates[#"\d+-(03)"#] = ["05"]
+        XCTAssertEqual(dates, "2018-01-01 2019-04-04 2020-05-03")
+
+        dates[#"(-)(?:\d+)"#] = ""
+        XCTAssertEqual(dates, "20180101 20190404 20200503")
+
+        dates[#"(20)(\d{2})"#] = "$2"
+        XCTAssertEqual(dates, "180101 190404 200503")
+
+        dates[#"0"#] = [nil, "9", "9"]
+        XCTAssertEqual(dates, "180191 199404 200503")
+
+        dates[#"0(0)(5)"#] = "1$2$1"
+        XCTAssertEqual(dates, "180191 199404 215003")
+
+        dates[#"(0)(5)0"#] = ("$2", "$1")
+        XCTAssertEqual(dates, "180191 199404 215003")
+
+        XCTAssertEqual(dates[#"(?<=^| )(\d{2})"#, "20$1"],
+                             "20180191 20199404 20215003")
+
+        XCTAssertEqual(dates[#"(\d+)"#, "$1$1"],
+                       "180191180191 199404199404 215003215003")
+        XCTAssertEqual(dates[#"\d(\d+)"#, "-$1-$1"],
+                       "1-80191-80191 1-99404-99404 2-15003-15003")
+    }
+    
+    func testPerformanceExample() {
+        // This is an example of a performance test case.
+        self.measure {
+            // Put the code you want to measure the time of here.
+            var str = """
+                👩‍👩‍👦 Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum. Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum. Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum. Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum. Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum. Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+                """
+
+            str = str + str
+            str = str + str
+            str = str + str
+            str = str + str
+//            str = str + str
+//            str = str + str
+//            str = str + str
+//            str = str + str
+
+            var i = 0
+            for _: String in str["\\w+"] {
+                i += 1
+            }
+            print(i)
+
+            str["\\w+"] = {
+                (groups: [Substring?], stop) in
+                return groups[0]!.uppercased()
+            }
+
+            str["\\w+"] = ">$0$0<"
+//            print(str)
+        }
+    }
+
+    func testOriginalV5Tests() {
         // This is an example of a functional test case.
         // Use XCTAssert and related functions to verify your tests produce the correct results.
 
@@ -331,39 +475,6 @@ class SwiftRegex5Tests: XCTestCase {
         XCTAssertEqual("abcd".allMatches(of: ".", pos: 2), ["c", "d"])
         XCTAssertEqual("abcd".replacing(regex: ".", pos: 2, with: "e"), "abee")
         XCTAssertEqual("abcd".replacing(regex: ".", pos: 2, with: ["e", "f"]), "abef")
-    }
-    
-    func testPerformanceExample() {
-        // This is an example of a performance test case.
-        self.measure {
-            // Put the code you want to measure the time of here.
-            var str = """
-                👩‍👩‍👦 Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum. Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum. Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum. Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum. Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum. Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
-                """
-
-            str = str + str
-            str = str + str
-            str = str + str
-            str = str + str
-//            str = str + str
-//            str = str + str
-//            str = str + str
-//            str = str + str
-
-            var i = 0
-            for _: String in str["\\w+"] {
-                i += 1
-            }
-            print(i)
-
-            str["\\w+"] = {
-                (groups: [Substring?], stop) in
-                return groups[0]!.uppercased()
-            }
-
-            str["\\w+"] = ">$0$0<"
-//            print(str)
-        }
     }
     
 }
