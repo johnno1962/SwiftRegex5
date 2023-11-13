@@ -7,7 +7,7 @@
 //
 //  Repo: https://github.com/johnno1962/SwiftRegex5
 //
-//  $Id: //depot/SwiftRegex5/SwiftRegex5.playground/Sources/TupleRegex.swift#41 $
+//  $Id: //depot/SwiftRegex5/SwiftRegex5.playground/Sources/TupleRegex.swift#43 $
 //
 
 import Foundation
@@ -40,7 +40,7 @@ public struct RegexOptioned: RegexLiteral, Hashable {
     #else
     public var hashValue: Int { return pattern.hashValue ^ Int(options.rawValue) }
     #endif
-    func add(options extra: NSRegularExpression.Options) -> some RegexLiteral {
+    func add(options extra: NSRegularExpression.Options) -> RegexLiteral {
         return RegexOptioned(pattern: pattern, options: options.union(extra))
     }
 }
@@ -52,25 +52,25 @@ extension RegexOptioned: ExpressibleByStringLiteral {
 }
 
 extension RegexLiteral {
-    public var caseInsensitive: some RegexLiteral {
+    public var caseInsensitive: RegexLiteral {
         return regexOptioned.add(options: .caseInsensitive)
     }
-    public var allowCommentsAndWhitespace: some RegexLiteral {
+    public var allowCommentsAndWhitespace: RegexLiteral {
         return regexOptioned.add(options: .allowCommentsAndWhitespace)
     }
-    public var ignoreMetacharacters: some RegexLiteral {
+    public var ignoreMetacharacters: RegexLiteral {
         return regexOptioned.add(options: .ignoreMetacharacters)
     }
-    public var dotMatchesLineSeparators: some RegexLiteral {
+    public var dotMatchesLineSeparators: RegexLiteral {
         return regexOptioned.add(options: .dotMatchesLineSeparators)
     }
-    public var anchorsMatchLines: some RegexLiteral {
+    public var anchorsMatchLines: RegexLiteral {
         return regexOptioned.add(options: .anchorsMatchLines)
     }
-    public var useUnixLineSeparators: some RegexLiteral {
+    public var useUnixLineSeparators: RegexLiteral {
         return regexOptioned.add(options: .useUnixLineSeparators)
     }
-    public var useUnicodeWordBoundaries: some RegexLiteral {
+    public var useUnicodeWordBoundaries: RegexLiteral {
         return regexOptioned.add(options: .useUnicodeWordBoundaries)
     }
     public var regexLazy: RegexLazy {
@@ -79,7 +79,7 @@ extension RegexLiteral {
 }
 
 public struct RegexLazy {
-    let literal: any RegexLiteral
+    let literal: RegexLiteral
 }
 
 /// basic regex extensions to String
@@ -98,35 +98,35 @@ extension StringProtocol {
     }
 
     /// longhand API and bridge to implementation class
-    public func containsMatch(of regex: some RegexLiteral, pos: Int? = nil) -> Bool {
+    public func containsMatch(of regex: RegexLiteral, pos: Int? = nil) -> Bool {
         return RegexImpl<String>(pattern: regex).matchResult(target: self, pos: pos) != nil
     }
-    public func firstMatch<T>(of regex: some RegexLiteral, pos: Int? = nil,
+    public func firstMatch<T>(of regex: RegexLiteral, pos: Int? = nil,
                               group: Int? = nil) -> T? {
         return RegexImpl<T>(pattern: regex).match(target: self, pos: pos, group: group)
     }
-    public func allMatches<T>(of regex: some RegexLiteral, pos: Int? = nil,
+    public func allMatches<T>(of regex: RegexLiteral, pos: Int? = nil,
                               group: Int? = nil) -> [T] {
         return RegexImpl<T>(pattern: regex).matches(target: self, pos: pos, group: group)
     }
-    public func lazyMatches<T>(of regex: some RegexLiteral, pos: Int? = nil,
+    public func lazyMatches<T>(of regex: RegexLiteral, pos: Int? = nil,
                                group: Int? = nil) -> AnyIterator<T> {
         return RegexImpl<T>(pattern: regex).iterator(target: self, pos: pos, group: group)
     }
     public func replacing<T>(
-        regex: some RegexLiteral, pos: Int? = nil, group: Int? = nil,
+        regex: RegexLiteral, pos: Int? = nil, group: Int? = nil,
         count: UnsafeMutablePointer<Int>? = nil, with template: T) -> String {
         return RegexImpl<T>(pattern: regex).replacing(target: self,
             pos: pos, group: group, count: count, template: template)
     }
     public func replacing<T>(
-        regex: some RegexLiteral, pos: Int? = nil, group: Int? = nil,
+        regex: RegexLiteral, pos: Int? = nil, group: Int? = nil,
         count: UnsafeMutablePointer<Int>? = nil, with templates: [T]) -> String {
         return RegexImpl<T>(pattern: regex).replacing(target: self,
             pos: pos, group: group, count: count, templates: templates)
     }
     public func replacing<T>(
-        regex: some RegexLiteral, pos: Int? = nil, group: Int? = nil,
+        regex: RegexLiteral, pos: Int? = nil, group: Int? = nil,
         count: UnsafeMutablePointer<Int>? = nil, exec closure: @escaping (
             T, UnsafeMutablePointer<ObjCBool>) -> String) -> String {
         return RegexImpl<T>(pattern: regex).replacing(target: self, pos: pos,
@@ -138,12 +138,12 @@ extension StringProtocol {
 extension StringProtocol {
 
     /// plain old string regex pattern matches
-    public subscript(pattern: some RegexLiteral) -> Bool {
+    public subscript(pattern: RegexLiteral) -> Bool {
         return containsMatch(of: pattern)
     }
 
     /// single match and global replace
-    public subscript<T>(pattern: some RegexLiteral,
+    public subscript<T>(pattern: RegexLiteral,
         count count: UnsafeMutablePointer<Int>? = nil) -> T? {
         get { return firstMatch(of: pattern) }
         set(newValue) { self = Self(replacing(regex: pattern,
@@ -151,7 +151,7 @@ extension StringProtocol {
     }
 
     /// operating on individual group
-    public subscript(pattern: some RegexLiteral, group: Int,
+    public subscript(pattern: RegexLiteral, group: Int,
         count count: UnsafeMutablePointer<Int>? = nil) -> String? {
         get { return firstMatch(of: pattern, group: group) }
         set(newValue) { self = Self(replacing(regex: pattern,
@@ -159,7 +159,7 @@ extension StringProtocol {
     }
 
     /// mutliple match and selective replace
-    public subscript<T>(pattern: some RegexLiteral, group: Int? = nil,
+    public subscript<T>(pattern: RegexLiteral, group: Int? = nil,
         count count: UnsafeMutablePointer<Int>? = nil) -> [T] {
         get { return allMatches(of: pattern, group: group) }
         set(newValue) { self = Self(replacing(regex: pattern,
@@ -167,7 +167,7 @@ extension StringProtocol {
     }
 
     /// closure replace
-    public subscript<T>(pattern: some RegexLiteral, group: Int? = nil,
+    public subscript<T>(pattern: RegexLiteral, group: Int? = nil,
         count count: UnsafeMutablePointer<Int>? = nil) -> (
             T, UnsafeMutablePointer<ObjCBool>) -> String {
         get { fatalError("Invalid get of closure") }
@@ -176,23 +176,23 @@ extension StringProtocol {
     }
 
     /// inplace replace (operates on whole String)
-    public subscript(pattern: some RegexLiteral,
+    public subscript(pattern: RegexLiteral,
         count count: UnsafeMutablePointer<Int>? = nil, template: String) -> String {
         return replacing(regex: pattern, count: count, with: template)
     }
     /// operating on specific group
-    public subscript(pattern: some RegexLiteral, group: Int,
+    public subscript(pattern: RegexLiteral, group: Int,
         count count: UnsafeMutablePointer<Int>? = nil, template: String) -> String {
         return replacing(regex: pattern, group: group,
                          count: count, with: template)
     }
 
-    public subscript<T>(pattern: some RegexLiteral, group: Int? = nil,
+    public subscript<T>(pattern: RegexLiteral, group: Int? = nil,
         count count: UnsafeMutablePointer<Int>? = nil, templates: [T]) -> String {
         return replacing(regex: pattern, group: group,
                          count: count, with: templates)
     }
-    public subscript<T>(pattern: some RegexLiteral, group: Int? = nil,
+    public subscript<T>(pattern: RegexLiteral, group: Int? = nil,
         count count: UnsafeMutablePointer<Int>? = nil, closure: @escaping (
             T, UnsafeMutablePointer<ObjCBool>) -> String) -> String {
         return replacing(regex: pattern, group: group,
@@ -237,29 +237,29 @@ extension StringProtocol {
 
 /// labeled versions if you prefer
 extension StringProtocol {
-    public subscript(pattern: some RegexLiteral, group group: Int) -> String? {
+    public subscript(pattern: RegexLiteral, group group: Int) -> String? {
         get { return firstMatch(of: pattern, group: group) }
         set(newValue) { self = Self(replacing(regex: pattern, group: group,
                                               with: newValue!))! }
     }
-    public subscript<T>(pattern: some RegexLiteral, group group: Int) -> [T] {
+    public subscript<T>(pattern: RegexLiteral, group group: Int) -> [T] {
         get { return allMatches(of: pattern, group: group) }
         set(newValue) { self = Self(replacing(regex: pattern, group: group,
                                               with: newValue))! }
     }
-    public subscript<T>(pattern: some RegexLiteral, group group: Int) -> (T, UnsafeMutablePointer<ObjCBool>) -> String {
+    public subscript<T>(pattern: RegexLiteral, group group: Int) -> (T, UnsafeMutablePointer<ObjCBool>) -> String {
         get { fatalError("Invalid get of closure") }
         set(closure) { self = Self(replacing(regex: pattern, group: group, exec: closure))! }
     }
-    public subscript<T>(pattern: some RegexLiteral, group group: Int? = nil,
+    public subscript<T>(pattern: RegexLiteral, group group: Int? = nil,
                         substitute template: T) -> String {
         return replacing(regex: pattern, group: group, with: template)
     }
-    public subscript<T>(pattern: some RegexLiteral, group group: Int? = nil,
+    public subscript<T>(pattern: RegexLiteral, group group: Int? = nil,
                         substitute templates: [T]) -> String {
         return replacing(regex: pattern, group: group, with: templates)
     }
-    public subscript<T>(pattern: some RegexLiteral, group group: Int? = nil,
+    public subscript<T>(pattern: RegexLiteral, group group: Int? = nil,
         substitute closure: @escaping (T, UnsafeMutablePointer<ObjCBool>) -> String) -> String {
         return replacing(regex: pattern, group: group, exec: closure)
     }
@@ -290,7 +290,7 @@ open class TupleRegex<T>: RegexLiteral, ExpressibleByStringLiteral {
         }
     }()
 
-    public init(pattern: some RegexLiteral) {
+    public init(pattern: RegexLiteral) {
         regexOptioned = pattern.regexOptioned
     }
     public required init(stringLiteral value: String) {
@@ -495,7 +495,7 @@ extension String {
 public class RegexMatch {
     var match: NSTextCheckingResult?
     public init() {}
-    public subscript(pattern: some RegexLiteral) -> RegexPattern {
+    public subscript(pattern: RegexLiteral) -> RegexPattern {
         return RegexPattern(literal: pattern, capture: self)
     }
 }
@@ -507,7 +507,7 @@ extension RegexLiteral {
 }
 
 public struct RegexPattern {
-    let literal: any RegexLiteral
+    let literal: RegexLiteral
     let capture: RegexMatch?
     public static func ~= (pattern: RegexPattern, value: String) -> Bool {
         if let match = RegexImpl<String>(pattern: pattern.literal).matchResult(target: value) {
