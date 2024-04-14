@@ -128,8 +128,21 @@ class SwiftRegex5Tests: XCTestCase {
 
         XCTAssertEqual(dates[#"(\d+)"#, "$1$1"],
                        "180191180191 199404199404 215003215003")
+        // new behavour, group 0 (entire match) makes more sense
         XCTAssertEqual(dates[#"\d(\d+)"#, "-$1-$1"],
+                       "-80191-80191 -99404-99404 -15003-15003")
+        // old behavour now requires group be explicit
+        XCTAssertEqual(dates[#"\d(\d+)"#, group: 1, "-$1-$1"],
                        "1-80191-80191 1-99404-99404 2-15003-15003")
+        XCTAssertEqual(dates[#"\d(\d+)"#, ["-$1-$1"]],
+                       "1-80191-80191 199404 215003")
+        var c = 0
+        dates[#"(\d+)"#] = { (groups: [String], stop) in
+            c += 1
+            stop.pointee = ObjCBool(c > 1)
+            return "--"
+        }
+        XCTAssertEqual(dates, "-- -- 215003");
     }
     
     func testPerformanceExample() {

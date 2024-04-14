@@ -20,7 +20,10 @@ the entire pattern match rather than the first group.
 The rule for these "single element tuples" (i.e. Strings) is: if the 
 number of capture groups in the pattern is exactly one then it receives 
 the first capture group otherwise it receives/replaces the entire match 
-(group 0). This seems to be the best compromise between consistency and 
+(group 0). There is one new exception though for "inplace replace" (a
+suscript with two string arguments which is a find and replace). In this 
+case the entire string is always replaced even when there is one group
+present. This seems to be the best compromise between consistency and 
 what people might expect of the library. For more details, consult the 
 tests.
 

@@ -7,7 +7,7 @@
 //
 //  Repo: https://github.com/johnno1962/SwiftRegex5
 //
-//  $Id: //depot/SwiftRegex5/SwiftRegex5.playground/Sources/TupleRegex.swift#43 $
+//  $Id: //depot/SwiftRegex5/SwiftRegex5.playground/Sources/TupleRegex.swift#48 $
 //
 
 import Foundation
@@ -176,18 +176,13 @@ extension StringProtocol {
     }
 
     /// inplace replace (operates on whole String)
-    public subscript(pattern: RegexLiteral,
-        count count: UnsafeMutablePointer<Int>? = nil, template: String) -> String {
-        return replacing(regex: pattern, count: count, with: template)
-    }
-    /// operating on specific group
-    public subscript(pattern: RegexLiteral, group: Int,
+    public subscript(pattern: RegexLiteral, group group: Int = 0,
         count count: UnsafeMutablePointer<Int>? = nil, template: String) -> String {
         return replacing(regex: pattern, group: group,
                          count: count, with: template)
     }
 
-    public subscript<T>(pattern: RegexLiteral, group: Int? = nil,
+    public subscript<T>(pattern: RegexLiteral, group group: Int? = nil,
         count count: UnsafeMutablePointer<Int>? = nil, templates: [T]) -> String {
         return replacing(regex: pattern, group: group,
                          count: count, with: templates)
