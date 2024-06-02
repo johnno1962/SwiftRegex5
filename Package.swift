@@ -10,10 +10,15 @@ let package = Package(
     platforms: [.macOS("10.10"), .iOS("10.0"), .tvOS("10.0")],
     products: [
         .library(name: "SwiftRegex", targets: ["SwiftRegex"]),
+        .library(name: "SwiftRegexD", targets: ["SwiftRegexD"]),
     ],
     dependencies: [],
     targets: [
-        .target(name: "SwiftRegex", dependencies: [], path: "SwiftRegex5.playground/Sources/"),
+        .target(
+            name: "SwiftRegex"),
+        .target(
+            name: "SwiftRegexD",
+            swiftSettings: [.define("DEBUG_ONLY")]),
         .testTarget(name: "SwiftRegexTests", dependencies: [
             "SwiftRegex"], path: "SwiftRegex5Tests/"),
     ]

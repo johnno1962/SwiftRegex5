@@ -7,9 +7,10 @@
 //
 //  Repo: https://github.com/johnno1962/SwiftRegex5
 //
-//  $Id: //depot/SwiftRegex5/SwiftRegex5.playground/Sources/TupleRegex.swift#48 $
+//  $Id: //depot/SwiftRegex5/SwiftRegex5.playground/Sources/TupleRegex.swift#49 $
 //
 
+#if DEBUG || !DEBUG_ONLY
 import Foundation
 
 /// Regex literal can be suffixed
@@ -512,3 +513,4 @@ public struct RegexPattern {
         return false
     }
 }
+#endif
