@@ -7,7 +7,7 @@
 //
 //  Repo: https://github.com/johnno1962/SwiftRegex5
 //
-//  $Id: //depot/SwiftRegex5/SwiftRegex5.playground/Sources/TupleRegex.swift#49 $
+//  $Id: //depot/SwiftRegex5/SwiftRegex5.playground/Sources/TupleRegex.swift#58 $
 //
 
 #if DEBUG || !DEBUG_ONLY
@@ -29,6 +29,7 @@ extension String: RegexLiteral {
 public struct RegexOptioned: RegexLiteral, Hashable {
 
     public static var defaultOptions: NSRegularExpression.Options = []
+    public static var unmatchedGroup = ""
 
     let pattern: String
     let options: NSRegularExpression.Options
@@ -159,6 +160,14 @@ extension StringProtocol {
             group: group, count: count, with: newValue!))! }
     }
 
+    /// operating on individual group (labeled)
+    public subscript(pattern: RegexLiteral, group group: Int,
+        count count: UnsafeMutablePointer<Int>? = nil) -> String? {
+        get { return firstMatch(of: pattern, group: group) }
+        set(newValue) { self = Self(replacing(regex: pattern,
+            group: group, count: count, with: newValue!))! }
+    }
+
     /// mutliple match and selective replace
     public subscript<T>(pattern: RegexLiteral, group: Int? = nil,
         count count: UnsafeMutablePointer<Int>? = nil) -> [T] {
@@ -176,6 +185,17 @@ extension StringProtocol {
             group: group, count: count, exec: closure))! }
     }
 
+    /// closure replace (labeled)
+    public subscript<T>(pattern: RegexLiteral, group group: Int,
+        count count: UnsafeMutablePointer<Int>? = nil) -> (
+            T, UnsafeMutablePointer<ObjCBool>) -> String {
+        get { fatalError("Invalid get of closure") }
+        set(closure) { self = Self(replacing(regex: pattern,
+            group: group, count: count, exec: closure))! }
+    }
+}
+
+extension StringProtocol {
     /// inplace replace (operates on whole String)
     public subscript(pattern: RegexLiteral, group group: Int = 0,
         count count: UnsafeMutablePointer<Int>? = nil, template: String) -> String {
@@ -188,7 +208,7 @@ extension StringProtocol {
         return replacing(regex: pattern, group: group,
                          count: count, with: templates)
     }
-    public subscript<T>(pattern: RegexLiteral, group: Int? = nil,
+    public subscript<T>(pattern: RegexLiteral, group group: Int? = 0,
         count count: UnsafeMutablePointer<Int>? = nil, closure: @escaping (
             T, UnsafeMutablePointer<ObjCBool>) -> String) -> String {
         return replacing(regex: pattern, group: group,
@@ -352,7 +372,8 @@ open class TupleRegex<T>: RegexLiteral, ExpressibleByStringLiteral {
             return substrs
         }
 
-        var groups: [String] = substrs.map { String($0 ?? "") }
+        var groups: [String] = substrs.map { String($0 ??
+            Substring(RegexOptioned.unmatchedGroup)) }
         if let groups = tuple(from: &groups) {
             return groups
         }
@@ -362,7 +383,8 @@ open class TupleRegex<T>: RegexLiteral, ExpressibleByStringLiteral {
             return ranges
         }
 
-        fatalError("Cannot entuple type \(T.self) from \(groups[1...])")
+        fatalError("Cannot entuple type \(T.self) from \(groups[1...])." +
+            "Is the number of elements in the tuple equal to the number of groups?")
     }
 
     /// replacing
