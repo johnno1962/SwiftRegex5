@@ -7,7 +7,7 @@
 //
 //  Repo: https://github.com/johnno1962/SwiftRegex5
 //
-//  $Id: //depot/SwiftRegex5/SwiftRegex5.playground/Sources/TupleRegex.swift#58 $
+//  $Id: //depot/SwiftRegex5/SwiftRegex5.playground/Sources/TupleRegex.swift#59 $
 //
 
 #if DEBUG || !DEBUG_ONLY
@@ -412,7 +412,7 @@ open class TupleRegex<T>: RegexLiteral, ExpressibleByStringLiteral {
         count: UnsafeMutablePointer<Int>? = nil,
         template: T) -> String {
         return replacing(target: target, pos: pos, group: group,
-                         templates: [template], global: true)
+                         count: count, templates: [template], global: true)
     }
     open func replacing<SP: StringProtocol>(target: SP, pos posin: Int? = nil,
         group forceGroup: Int? = nil, count: UnsafeMutablePointer<Int>? = nil,
