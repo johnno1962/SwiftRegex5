@@ -24,7 +24,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
-		BB20CC892474278000F0200F /* TupleRegex.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = TupleRegex.swift; path = Sources/TupleRegex.swift; sourceTree = "<group>"; };
+		BB20CC892474278000F0200F /* TupleRegex.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = TupleRegex.swift; path = Sources/SwiftRegex/TupleRegex.swift; sourceTree = "<group>"; };
 		BB351DE92AF70B99006BBD31 /* README.md */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		BB571209200A5457003F859F /* SwiftRegex5Tests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = SwiftRegex5Tests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		BB57120B200A5457003F859F /* SwiftRegex5Tests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SwiftRegex5Tests.swift; sourceTree = "<group>"; };
