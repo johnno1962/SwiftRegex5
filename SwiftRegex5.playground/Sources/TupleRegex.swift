@@ -7,7 +7,7 @@
 //
 //  Repo: https://github.com/johnno1962/SwiftRegex5
 //
-//  $Id: //depot/SwiftRegex5/SwiftRegex5.playground/Sources/TupleRegex.swift#61 $
+//  $Id: //depot/SwiftRegex5/SwiftRegex5.playground/Sources/TupleRegex.swift#62 $
 //
 
 #if DEBUG || !DEBUG_ONLY
@@ -373,8 +373,12 @@ open class TupleRegex<T>: RegexLiteral, ExpressibleByStringLiteral {
             return substrs
         }
 
-        var groups: [String] = substrs.map { String($0 ??
-            Substring(RegexOptioned.unmatchedGroup)) }
+        var strs: [String?] = substrs.map { $0.flatMap { String($0) } }
+        if let strs = tuple(from: &strs) {
+            return strs
+        }
+
+        var groups: [String] = strs.map { $0 ?? RegexOptioned.unmatchedGroup }
         if let groups = tuple(from: &groups) {
             return groups
         }
