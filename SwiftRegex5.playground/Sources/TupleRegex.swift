@@ -7,7 +7,7 @@
 //
 //  Repo: https://github.com/johnno1962/SwiftRegex5
 //
-//  $Id: //depot/SwiftRegex5/SwiftRegex5.playground/Sources/TupleRegex.swift#62 $
+//  $Id: //depot/SwiftRegex5/SwiftRegex5.playground/Sources/TupleRegex.swift#63 $
 //
 
 #if DEBUG || !DEBUG_ONLY
@@ -28,7 +28,9 @@ extension String: RegexLiteral {
 
 public struct RegexOptioned: RegexLiteral, Hashable {
 
+    nonisolated(unsafe)
     public static var defaultOptions: NSRegularExpression.Options = []
+    nonisolated(unsafe)
     public static var unmatchedGroup = ""
 
     let pattern: String
@@ -285,7 +287,9 @@ extension StringProtocol {
 /// interface to Regex engine in use
 public typealias RegexImpl = TupleRegex
 
+nonisolated(unsafe)
 private var regexCache = [RegexOptioned: NSRegularExpression]()
+nonisolated(unsafe)
 private var cacheLock = NSLock()
 
 open class TupleRegex<T>: RegexLiteral, ExpressibleByStringLiteral {
@@ -367,8 +371,8 @@ open class TupleRegex<T>: RegexLiteral, ExpressibleByStringLiteral {
             return nsranges
         }
 
-        var substrs: [Substring?] = nsranges.map { $0.location == NSNotFound ? nil :
-                                                Substring(target.substring(with: $0)) }
+        var substrs: [Substring?] = nsranges.map { $0.location == NSNotFound ?
+                                nil : Substring(target.substring(with: $0)) }
         if let substrs = tuple(from: &substrs) {
             return substrs
         }
@@ -383,7 +387,8 @@ open class TupleRegex<T>: RegexLiteral, ExpressibleByStringLiteral {
             return groups
         }
 
-        var ranges: [Range<String.Index>?] = nsranges.map { Range($0, in: target as String) }
+        var ranges: [Range<String.Index>?] = nsranges.map {
+                            Range($0, in: target as String) }
         if let ranges = tuple(from: &ranges) {
             return ranges
         }

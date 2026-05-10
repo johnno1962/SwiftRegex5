@@ -21,5 +21,6 @@ let package = Package(
             swiftSettings: [.define("DEBUG_ONLY")]),
         .testTarget(name: "SwiftRegexTests", dependencies: [
             "SwiftRegex"], path: "SwiftRegex5Tests/"),
-    ]
+    ],
+    swiftLanguageVersions: [.v5]
 )
